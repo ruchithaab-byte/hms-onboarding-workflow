@@ -35,7 +35,9 @@ public class SecurityConfig {
             .securityMatcher("/api/**") 
             .authorizeHttpRequests(authz -> authz
                 // Webhooks must be public but secured separately
-                .requestMatchers("/api/webhooks/**").permitAll() 
+                .requestMatchers("/api/webhooks/**").permitAll()
+                // TODO: Remove this permitAll once service-to-service authentication is implemented
+                .requestMatchers("/api/v1/onboarding/**").permitAll()
                 .anyRequest().authenticated()
             )
             .oauth2ResourceServer(oauth2 -> oauth2.jwt(withDefaults()))

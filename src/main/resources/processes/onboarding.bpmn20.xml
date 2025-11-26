@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<definitions xmlns="http://www.omg.org/spec/BPMN/20100524/MODEL"
+             xmlns:flowable="http://flowable.org/bpmn"
+             targetNamespace="http://www.hms.com/workflow">
+    <process id="onboardingProcess" name="Onboarding Process">
+        
+        <startEvent id="startEvent1">
+          <extensionElements>
+            <flowable:eventType xmlns:flowable="http://flowable.org/bpmn">userCreatedEvent</flowable:eventType>
+            <flowable:eventOutParameter xmlns:flowable="http://flowable.org/bpmn" source="userId" target="userId"/>
+            <flowable:eventOutParameter xmlns:flowable="http://flowable.org/bpmn" source="tenantId" target="tenantId"/>
+          </extensionElements>
+        </startEvent>
+        
+        <sequenceFlow id="flow1" sourceRef="startEvent1" targetRef="onboardingTask" />
+        
+        <serviceTask id="onboardingTask" name="Onboard User" 
+                     flowable:delegateExpression="${onboardingDelegate}" />
+        
+        <sequenceFlow id="flow2" sourceRef="onboardingTask" targetRef="endEvent" />
+        
+        <endEvent id="endEvent" />
+    </process>
+</definitions>

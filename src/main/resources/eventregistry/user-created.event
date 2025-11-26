@@ -1,0 +1,11 @@
+{
+  "key": "userCreatedEvent",
+  "name": "User Created Event",
+  "inboundChannelKeys": ["inboundUserChannel"],
+  "correlationParameters": [],
+  "payload": [
+    { "name": "userId", "type": "string" },
+    { "name": "email", "type": "string" },
+    { "name": "tenantId", "type": "string" }
+  ]
+}

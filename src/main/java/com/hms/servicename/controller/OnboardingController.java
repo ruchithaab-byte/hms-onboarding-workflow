@@ -2,6 +2,7 @@ package com.hms.servicename.controller;
 
 import com.hms.lib.common.context.TenantContext;
 import com.hms.lib.common.context.UserContext;
+import com.hms.lib.common.security.PermissionService;
 import com.hms.servicename.model.OnboardingRequestEntity;
 import com.hms.servicename.repository.OnboardingRequestRepository;
 import com.hms.workflow.api.OnboardingApi;
@@ -9,6 +10,7 @@ import com.hms.workflow.model.OnboardingResponse;
 import com.hms.workflow.model.StartOnboardingRequest;
 import org.slf4j.MDC;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -22,14 +24,42 @@ import java.util.UUID;
 public class OnboardingController implements OnboardingApi {
 
     private final OnboardingRequestRepository repository;
+    private final PermissionService permissionService;
 
-    public OnboardingController(OnboardingRequestRepository repository) {
+    public OnboardingController(
+            OnboardingRequestRepository repository,
+            PermissionService permissionService) {
         this.repository = repository;
+        this.permissionService = permissionService;
     }
 
     @Override
     @Transactional
     public ResponseEntity<OnboardingResponse> startOnboarding(StartOnboardingRequest request) {
+        // Permission check: Can this user/agent create a workflow_process?
+        String userId = UserContext.getUserId();
+        String tenantId = TenantContext.getTenantId();
+        String agentId = UserContext.getAgentId();
+
+        if (userId == null || userId.isEmpty()) {
+            throw new AccessDeniedException("User not authenticated");
+        }
+
+        io.permit.sdk.enforcement.Resource resource = permissionService.buildResource(
+                "workflow_process", null, tenantId);
+        
+        boolean permitted;
+        if (agentId != null && !agentId.isEmpty()) {
+            permitted = permissionService.checkWithAgent(userId, agentId, "create", resource);
+        } else {
+            permitted = permissionService.check(userId, "create", resource);
+        }
+
+        if (!permitted) {
+            throw new AccessDeniedException(
+                    "User/Agent not authorized to create workflow_process");
+        }
+
         // 1. Save state to DB (Transactional)
         OnboardingRequestEntity entity = new OnboardingRequestEntity();
         entity.setTenantName(request.getTenantName());

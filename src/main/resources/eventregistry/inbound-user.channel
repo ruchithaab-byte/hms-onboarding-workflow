@@ -1,0 +1,12 @@
+{
+  "key": "inboundUserChannel",
+  "category": "channel",
+  "name": "Inbound User Channel",
+  "channelType": "inbound",
+  "type": "kafka",
+  "deserializerType": "json",
+  "topics": ["hms.user.created"],
+  "channelEventKeyDetection": {
+    "fixedValue": "userCreatedEvent"
+  }
+}
